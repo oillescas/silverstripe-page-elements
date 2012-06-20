@@ -35,35 +35,28 @@ class GridPage extends Page {
 			$this->write();
 		}
 		
-		$fs->insertAfter(
-			new DropdownField(
-				"Template",
-				"Template",
-				$templates,
-				$this->Template
-			),
-			"ClassName");
-		
 		if($this->Template && $this->isValidTemplate($this->Template)) {
 			$field = new SlotManager($this);
 			$field->setTemplate(self::$SlotManager_template);
 			$field->extraCSS = self::$SlotManager_extra_css;
 		} else {
-			$field = new HeaderField("Please choose a Template.");
+			$field = new HeaderField("Please choose a Template. o 2");
 		}
 		
-		$fs->removeFieldFromTab("Root.Content.Main", "Content");
-		$fs->addFieldToTab("Root.Content.Main", $field);
+		$fs->removeFieldFromTab("Root.Main", "Content");
+		$fs->addFieldToTab("Root.Main", $field);
+		$fs->addFieldToTab("Root.Main", new DropdownField(
+				"Template",
+				"Template",
+				$templates,
+				$this->Template
+			));
 		
 		Requirements::customScript(<<<JS
 
-Behaviour.register({
-	'select#Form_EditForm_Template' : {
-		onchange: function() {
+jQuery("#Form_EditForm_Template").change(function() {
 			alert('The template will be updated after the page is saved');
-		}
-	}
-});
+		});
 
 JS
 );
@@ -117,7 +110,6 @@ JS
 	public function getSelectableTemplates() {
 		$temp = array("" => "None");
 		$pre = "GridPage";
-		
 		if($TemplateFiles = glob(Director::getAbsFile($this->TemplateDir()).$pre."*.ss")) {
 			foreach($TemplateFiles as $TemplateFile) {
 				$filename = basename($TemplateFile, ".ss");
@@ -172,11 +164,14 @@ JS
 	}
 	
 	function ThemeDir() {
-		if($theme = SSViewer::current_theme()) {
+		/*if($theme = SSViewer::current_theme()) {
 			return THEMES_DIR . "/$theme";
-		} elseif($theme = ElementExtension::$theme) {
+		} else if($theme = ElementExtension::$theme) {
 			return THEMES_DIR . "/$theme";
-		} elseif($theme = SiteConfig::current_site_config()->Theme ) {
+		} else 
+		 * no funciona en SS3
+		 * */
+		if($theme = SiteConfig::current_site_config()->Theme ) {
 			return THEMES_DIR . "/$theme";
 		} else {
 			throw new Exception("cannot detect theme");
